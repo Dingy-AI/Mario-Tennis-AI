@@ -9,13 +9,13 @@ actions = ['','a', 'b', 'left', 'right', 'up', 'down', 'start', 'select']
 matrix_shape = (16, 20)
 game_area_observation_space = spaces.Box(low=0, high=255, shape=matrix_shape, dtype=np.uint8)
 
-from reward_calculator import BasicReward
+from .reward_calculator import BasicReward
 
 class SuperMarioPyBoyEnvironment(gym.Env):
 
-    def __init__(self, pyboy, debug=False):
+    def __init__(self, rom_path, debug=False):
         super().__init__()
-        self.pyboy = pyboy
+        self.pyboy = PyBoy(rom_path)
         self._fitness=0
         self._previous_fitness=0
         self.debug = debug
@@ -27,6 +27,12 @@ class SuperMarioPyBoyEnvironment(gym.Env):
         self.observation_space = game_area_observation_space
 
         self.pyboy.game_wrapper.start_game()
+        # while self.pyboy.tick():
+        #     print(self.pyboy.memory[0xC1C1])
+
+        #     pass
+
+        # self.pyboy.stop()
 
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
