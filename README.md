@@ -4,6 +4,9 @@
 
 conda activate MarioTennisAI
 
+# Run Training
+python ./trainer/train.py
+
 # General References
 
 ## Pyboy Documentation

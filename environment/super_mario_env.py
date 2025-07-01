@@ -9,6 +9,8 @@ actions = ['','a', 'b', 'left', 'right', 'up', 'down', 'start', 'select']
 matrix_shape = (16, 20)
 game_area_observation_space = spaces.Box(low=0, high=255, shape=matrix_shape, dtype=np.uint8)
 
+from reward_calculator import BasicReward
+
 class SuperMarioPyBoyEnvironment(gym.Env):
 
     def __init__(self, pyboy, debug=False):
