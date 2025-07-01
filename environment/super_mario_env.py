@@ -27,12 +27,20 @@ class SuperMarioPyBoyEnvironment(gym.Env):
         self.observation_space = game_area_observation_space
 
         self.pyboy.game_wrapper.start_game()
+        
+        self.menu_navigation()
+
         # while self.pyboy.tick():
         #     print(self.pyboy.memory[0xC1C1])
 
         #     pass
 
         # self.pyboy.stop()
+
+    def menu_navigation(self):
+        for _ in range(60):
+            self.pyboy.button(actions[1])
+            self.pyboy.tick(10)
 
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
@@ -49,7 +57,8 @@ class SuperMarioPyBoyEnvironment(gym.Env):
 
         done = self.pyboy.game_wrapper.game_over
 
-        self._calculate_fitness()
+        # No attribute called score so we will have to make it at a later time
+        # self._calculate_fitness()
         reward=self._fitness-self._previous_fitness
 
         observation=self.pyboy.game_area()
