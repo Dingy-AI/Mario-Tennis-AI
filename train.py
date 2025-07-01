@@ -13,7 +13,7 @@ def main():
 
     for i in range(0,1000):
 
-        env.step(4)
+        print(env.step(4))
     print("temp")
 
 
