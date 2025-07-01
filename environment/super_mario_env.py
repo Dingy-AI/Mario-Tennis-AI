@@ -20,8 +20,8 @@ class SuperMarioPyBoyEnvironment(gym.Env):
     def __init__(self, rom_path, debug=False):
         super().__init__()
         self.pyboy = PyBoy(rom_path)
-        self._fitness=0
-        self._previous_fitness=0
+        self._reward=0
+        self._previous_reward=0
         self.debug = debug
 
         if not self.debug:
@@ -33,7 +33,7 @@ class SuperMarioPyBoyEnvironment(gym.Env):
         self.pyboy.game_wrapper.start_game()
         
         self.menu_navigation()
-
+        self.set_initial_reward_position()
         # while self.pyboy.tick():
         #     print(self.pyboy.memory[0xC1C1])
 
@@ -45,6 +45,10 @@ class SuperMarioPyBoyEnvironment(gym.Env):
         for _ in range(60):
             self.pyboy.button(actions[1])
             self.pyboy.tick(10)
+    
+    def set_initial_reward_position(self):
+        self._reward = self.pyboy.memory[0xC1CA]
+        self._previous_reward =  self.pyboy.memory[0xC1CA]
 
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
@@ -59,6 +63,8 @@ class SuperMarioPyBoyEnvironment(gym.Env):
         # self.pyboy.tick(1, False)
         self.pyboy.tick(1)
 
+
+        # do a reset of the game if mario dies :O
         done = self.pyboy.game_wrapper.game_over
 
         observation=self.pyboy.game_area()
@@ -67,7 +73,11 @@ class SuperMarioPyBoyEnvironment(gym.Env):
         info = {}
         truncated = False
 
+        print("reward checker", reward, self._reward, self._previous_reward)
         return observation, reward, done, truncated, info
+
+    # Set initial previous reward to current x position:
+
 
     # Basic reward function to prevent dying 
     def calculate_reward(self):
@@ -81,24 +91,24 @@ class SuperMarioPyBoyEnvironment(gym.Env):
 
         # we want to avoid enemies #if we hit an enemy or die we get a negative score
 
-        self._previous_fitness=self._fitness
+        self._previous_reward=self._reward
 
         # NOTE: Only some game wrappers will provide a score
         # If not, you'll have to investigate how to score the game yourself
 
 
-        bonus_reward = 0 
+         
         if self.pyboy.memory[0xC1C1] == 3: # Player is dead
-            bonus_reward = -10
+            self._reward = -10
 
-        self._fitness = self.pyboy.memory[0xC1CA] + bonus_reward
-
-        return self._fitness - self._previous_fitness
+            return self._reward 
+        self._reward = self.pyboy.memory[0xC1CA] - self._previous_reward
+        return self._reward
 
     def reset(self, **kwargs):
         self.pyboy.game_wrapper.reset_game()
-        self._fitness=0
-        self._previous_fitness=0
+        self._reward=0
+        self._previous_reward=0
 
         observation=self.pyboy.game_area()
         info = {}
