@@ -11,9 +11,9 @@ def main():
     print("Hello world")
     env = create_env()
 
-    for i in range(0,1000):
+    for i in range(0,100):
 
-        print(env.step(4))
+        env.step(4)
     print("temp")
 
 

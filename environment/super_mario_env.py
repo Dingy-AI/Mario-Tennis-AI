@@ -4,7 +4,11 @@ from gymnasium import spaces
 import numpy as np
 from pyboy import PyBoy
 
-actions = ['','a', 'b', 'left', 'right', 'up', 'down', 'start', 'select']
+
+actions = ['','a', 'b', 'left', 'right', 'up', 'down']
+true_actions = ['','a', 'b', 'left', 'right', 'up', 'down', 'start', 'select']
+
+
 
 matrix_shape = (16, 20)
 game_area_observation_space = spaces.Box(low=0, high=255, shape=matrix_shape, dtype=np.uint8)
@@ -57,22 +61,39 @@ class SuperMarioPyBoyEnvironment(gym.Env):
 
         done = self.pyboy.game_wrapper.game_over
 
-        # No attribute called score so we will have to make it at a later time
-        # self._calculate_fitness()
-        reward=self._fitness-self._previous_fitness
-
         observation=self.pyboy.game_area()
+
+        reward = self.calculate_reward()
         info = {}
         truncated = False
 
         return observation, reward, done, truncated, info
 
-    def _calculate_fitness(self):
+    # Basic reward function to prevent dying 
+    def calculate_reward(self):
+        # print("Current Menu Selection", self.pyboy.memory[0xC1A8])
+        # print("Player State", self.pyboy.memory[0xC1C1])
+
+        # print("Player X Position", self.pyboy.memory[0xC1CA])
+        # print("Sprite Slot", self.pyboy.memory[0xD00F])
+
+        # the main way to calculate score is to go to the right
+
+        # we want to avoid enemies #if we hit an enemy or die we get a negative score
+
         self._previous_fitness=self._fitness
 
         # NOTE: Only some game wrappers will provide a score
         # If not, you'll have to investigate how to score the game yourself
-        self._fitness=self.pyboy.game_wrapper.score
+
+
+        bonus_reward = 0 
+        if self.pyboy.memory[0xC1C1] == 3: # Player is dead
+            bonus_reward = -10
+
+        self._fitness = self.pyboy.memory[0xC1CA] + bonus_reward
+
+        return self._fitness - self._previous_fitness
 
     def reset(self, **kwargs):
         self.pyboy.game_wrapper.reset_game()
