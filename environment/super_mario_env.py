@@ -47,8 +47,7 @@ class SuperMarioPyBoyEnvironment(gym.Env):
             self.pyboy.tick(10)
     
     def set_initial_reward_position(self):
-        self._reward = self.pyboy.memory[0xC1CA]
-        self._previous_reward =  self.pyboy.memory[0xC1CA]
+        self._previous_position =  self.pyboy.memory[0xC1CA]
 
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
@@ -65,7 +64,7 @@ class SuperMarioPyBoyEnvironment(gym.Env):
 
 
         # do a reset of the game if mario dies :O
-        done = self.pyboy.game_wrapper.game_over
+        done = self.is_mario_dead()
 
         observation=self.pyboy.game_area()
 
@@ -73,11 +72,13 @@ class SuperMarioPyBoyEnvironment(gym.Env):
         info = {}
         truncated = False
 
-        print("reward checker", reward, self._reward, self._previous_reward)
+        print("reward checker", reward, self.pyboy.memory[0xC1CA], self._previous_position, self.pyboy.memory[0xC1C1], self.pyboy.memory[0xFF99], self.pyboy.memory[0xFFA9], self.pyboy.memory[0xDE61])
         return observation, reward, done, truncated, info
 
-    # Set initial previous reward to current x position:
-
+    def is_mario_dead(self):
+        if self.pyboy.memory[0xC1C1] == 3:
+            return True
+        return False
 
     # Basic reward function to prevent dying 
     def calculate_reward(self):
@@ -91,18 +92,26 @@ class SuperMarioPyBoyEnvironment(gym.Env):
 
         # we want to avoid enemies #if we hit an enemy or die we get a negative score
 
-        self._previous_reward=self._reward
+        # self._previous_position=self._current_position
 
         # NOTE: Only some game wrappers will provide a score
         # If not, you'll have to investigate how to score the game yourself
 
-
+        # come back to this tomorrow - modify reward function to 
          
-        if self.pyboy.memory[0xC1C1] == 3: # Player is dead
+        if self.is_mario_dead(): # Player is dead
+            self._reward = -10
+            input()
+            return self._reward
+        self._reward = self.pyboy.memory[0xC1CA] - self._previous_position
+
+        self._previous_position = self.pyboy.memory[0xC1CA]
+
+        # some weird thing happens when he hits the gomba. it resets his x and y position.
+        # this might not be necessary but we will leave in for now. might just take it out later.
+        if self._reward < -100: 
             self._reward = -10
 
-            return self._reward 
-        self._reward = self.pyboy.memory[0xC1CA] - self._previous_reward
         return self._reward
 
     def reset(self, **kwargs):
