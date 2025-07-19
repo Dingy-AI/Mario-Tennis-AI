@@ -11,9 +11,12 @@ def main():
     print("Hello world")
     env = create_env()
 
-    for i in range(0,200):
+    for i in range(0,1000):
 
-        env.step(4)
+        observation, reward, done, truncated, info = env.step(4)
+
+        if done:
+            env.reset()
     print("temp")
 
 

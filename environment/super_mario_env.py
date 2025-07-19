@@ -72,7 +72,7 @@ class SuperMarioPyBoyEnvironment(gym.Env):
         info = {}
         truncated = False
 
-        print("reward checker", reward, self.pyboy.memory[0xC1CA], self._previous_position, self.pyboy.memory[0xC1C1], self.pyboy.memory[0xFF99], self.pyboy.memory[0xFFA9], self.pyboy.memory[0xDE61])
+        # print("reward checker", reward, self.pyboy.memory[0xC1CA], self._previous_position, self.pyboy.memory[0xC1C1], self.pyboy.memory[0xFF99], self.pyboy.memory[0xFFA9], self.pyboy.memory[0xDE61])
         return observation, reward, done, truncated, info
 
     def is_mario_dead(self):
@@ -101,7 +101,7 @@ class SuperMarioPyBoyEnvironment(gym.Env):
          
         if self.is_mario_dead(): # Player is dead
             self._reward = -10
-            input()
+            # input()
             return self._reward
         self._reward = self.pyboy.memory[0xC1CA] - self._previous_position
 
@@ -120,6 +120,7 @@ class SuperMarioPyBoyEnvironment(gym.Env):
         self._previous_reward=0
 
         observation=self.pyboy.game_area()
+        self.menu_navigation()
         info = {}
         return observation, info
 
